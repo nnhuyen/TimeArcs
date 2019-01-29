@@ -1,11 +1,15 @@
 //Constants for the SVG
 var margin = {top: 0, right: 0, bottom: 5, left: 5};
-var width = document.body.clientWidth - margin.left - margin.right;
-var height = 780 - margin.top - margin.bottom;
-
+// var width = document.body.clientWidth - margin.left - margin.right;
+var width = 5000;
+// var height = 780 - margin.top - margin.bottom;
+var height = 4000;
+var defaultNode = 150;
+var typeArray = ["Extrasystemic", "Interstate", "Internal", "Internationalized internal"];
 //---End Insert------
 
 //Append a SVG to the body of the html page. Assign this SVG as an object to svg
+
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
@@ -62,11 +66,11 @@ var node_drag = d3.behavior.drag()
 
 
 var data, data2;
-var firstDate = Date.parse("2005-01-01T00:00:00");
+var firstDate = Date.parse("2005");
 var numSecondADay = 24*60*60;
 var numSecondAMonth = 30*numSecondADay;
-var minYear = 2006;
-var maxYear = 2015;
+var minYear = 1945;
+var maxYear = 2018;
 var numMonth = 12*(maxYear-minYear);
 
 var sourceList = {};
@@ -84,7 +88,7 @@ var relationship;
 var termMaxMax, termMaxMax2;
 var terms;
 var NodeG; 
-var xStep =100;
+var xStep =1200;
 //var xScale = d3.time.scale().range([0, (width-xStep-100)/numMonth]);
 var yScale;
 var linkScale;
@@ -96,7 +100,7 @@ var isLensing = false;
 var lensingMul = 5;
 var lMonth = -lensingMul*2;
 var coordinate = [0,0];
-var XGAP_ = 9; // gap between months on xAxis
+var XGAP_ = 3; // gap between months on xAxis
 
 function xScale(m){
     if (isLensing){
@@ -141,11 +145,13 @@ var nodes2List = {};
 var links2List = {};
 
 //d3.tsv("data/corpus_ner_geo.tsv", function(error, data_) {
-d3.tsv("data/huffington.tsv", function(error, data_) {
+// d3.tsv("data/huffington.tsv", function(error, data_) {
 //d3.tsv("data/wikinews.tsv", function(error, data_) {
+d3.json("data/conflict/conflict.json", function(error, data_) {
       if (error) throw error;
     data = data_;
-    
+    console.log("data_");
+    console.log(JSON.parse(JSON.stringify(data_)));
     terms = new Object();
     termMaxMax = 1;
     data.forEach(function(d) {
@@ -153,9 +159,12 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
         // Process date
         var curDate = Date.parse(d["time"]);
         d.date = new Date(d["time"]);
-        var year = d.date.getFullYear();
-        var m =  12*(year-minYear) + d.date.getMonth();
-        d.m = m;
+        // var year = d.date.getFullYear();
+        var year = d["time"];
+        var m =  12*(year-minYear)
+            // + d.date.getMonth()
+        ;
+        d.m = m;        // month
          
         if (year>=minYear && year<=maxYear){
             // Add source to sourceList
@@ -165,33 +174,33 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                 sourceList[d.source]++;    
         }
 
-        if (d["person"] != ""){
-            var list = d["person"].split("|");
-            for (var i=0; i<list.length;i++){
+        if (d["Extrasystemic"] != ""){
+            var list = d["Extrasystemic"].split("|");
+            for (var i=0; i<list.length;i++){   // xet term
                 var term = list[i];
-                d[term] = 1;
-                if (!terms[term]){
+                d[term] = 1;                // tach term
+                if (!terms[term]){                          // if never meet this term
                     terms[term] = new Object();
-                    terms[term].max = 0;
-                    terms[term].maxMonth = -100;   // initialized negative
-                    terms[term].category = "person";
+                    terms[term].max = 0;                    // init max: max occurence at a month
+                    terms[term].maxMonth = -100;   // initialized negative, the month that occur most
+                    terms[term].category = "Extrasystemic";
                 }    
-                if (!terms[term][m])
-                    terms[term][m] = 1;
+                if (!terms[term][m])                        // if term never meet this month m
+                    terms[term][m] = 1;             // m is the month encounter
                 else{
-                    terms[term][m] ++;
+                    terms[term][m] ++;                      // if meet this month more than 1
                     if (terms[term][m]>terms[term].max){
                         terms[term].max = terms[term][m];
                         terms[term].maxMonth = m;
-                        if (terms[term].max>termMaxMax)
+                        if (terms[term].max>termMaxMax)     // termMaxMax: max of max, dai loai la max nhat
                             termMaxMax = terms[term].max;
                     }    
                 }    
             }
         }
 
-        if (d["location"] != "" && d["location"] != 1){
-            var list = d["location"].split("|");
+        if (d["Interstate"] != "" && d["Interstate"] != 1){
+            var list = d["Interstate"].split("|");
             for (var i=0; i<list.length;i++){
                 var term = list[i];
                 d[term] = 1;
@@ -199,7 +208,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                     terms[term] = new Object();
                     terms[term].max = 0;
                     terms[term].maxMonth = -100;   // initialized negative
-                    terms[term].category = "location";
+                    terms[term].category = "Interstate";
                 }    
                 if (!terms[term][m])
                     terms[term][m] = 1;
@@ -215,8 +224,8 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                 }    
             }
         }
-        if (d["organization"] != "" && d["organization"] != 1){
-            var list = d["organization"].split("|");
+        if (d["Internal"] != "" && d["Internal"] != 1){
+            var list = d["Internal"].split("|");
             for (var i=0; i<list.length;i++){
                 var term = list[i];
                 d[term] = 1;
@@ -224,7 +233,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                     terms[term] = new Object();
                     terms[term].max = 0;
                     terms[term].maxMonth = -100;   // initialized negative
-                    terms[term].category = "organization";
+                    terms[term].category = "Internal";
                 }    
                 if (!terms[term][m])
                     terms[term][m] = 1;
@@ -235,13 +244,12 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                         terms[term].maxMonth = m;
                         if (terms[term].max>termMaxMax)
                             termMaxMax = terms[term].max;
-                        
                     }    
                 }    
             }
         }
-        if (d["miscellaneous"] != "" && d["miscellaneous"] != 1){
-            var list = d["miscellaneous"].split("|");
+        if (d["Internationalized internal"] != "" && d["Internationalized internal"] != 1){
+            var list = d["Internationalized internal"].split("|");
             for (var i=0; i<list.length;i++){
                 var term = list[i];
                 d[term] = 1;
@@ -249,7 +257,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                     terms[term] = new Object();
                     terms[term].max = 0;
                     terms[term].maxMonth = -100;   // initialized negative
-                    terms[term].category = "miscellaneous";
+                    terms[term].category = "Internationalized internal";
                 }    
                 if (!terms[term][m])
                     terms[term][m] = 1;
@@ -268,7 +276,9 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
         
     });
 
-    console.log("DONE reading the input file = "+data.length); 
+    console.log("DONE reading the input file = "+data.length);
+    console.log("data:");
+    console.log(data);
 
     setupSliderScale(svg);
     
@@ -307,7 +317,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
         }
     });
 
-    //Creates the graph data structure out of the json data
+    //Creates the graph data structure out of the json data30
         force.nodes(nodes)
             .links(links)
             .start();
@@ -318,10 +328,6 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
         force.on("end", function () {
             detactTimeSeries();
         });
-
-        
-
-
 
 
         /// The second force directed layout ***********
@@ -452,16 +458,16 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
 
     function readTermsAndRelationships() {
         data2 = data.filter(function (d, i) {
-            if (!searchTerm || searchTerm=="" ) {
+            if (!searchTerm || searchTerm=="" ) {       // data2 is data after check searchTerm
                 return d;
             }
             else if (d[searchTerm])
                 return d;
         });
 
-        var selected  ={}
-        if (searchTerm && searchTerm!=""){
-            data2.forEach(function(d) {
+        var selected  ={};
+        if (searchTerm && searchTerm!=""){              // if searchTerm exist
+            data2.forEach(function(d) {     // d: post
                  for (var term1 in d) {
                     if (!selected[term1])
                         selected[term1] = {};
@@ -489,21 +495,21 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
         
         
         removeList["source"] =1;
-        removeList["person"] =1;
-        removeList["location"] =1;
-        removeList["organization"] =1;
-        removeList["miscellaneous"] =1;
+        removeList["Extrasystemic"] =1;
+        removeList["Interstate"] =1;
+        removeList["Internal"] =1;
+        removeList["Internationalized internal"] =1;
 
         removeList["muckreads weekly deadly force"] = 1
         removeList["propublica"] =1;
         removeList["white this alabama judge has figured out how"] =1;
-        removeList["dea ’s facebook impersonato"] =1;
+        removeList["dea ’s facebook imExtrasystemicato"] =1;
         removeList["dismantle roe"] =1;
         removeList["huffington post"] =1;
         
         
         termArray = [];
-        for (var att in terms) {
+        for (var att in terms) {        // xet each term
             var e =  {};
             e.term = att;
             if (removeList[e.term] || (searchTerm && searchTerm!="" && !selected[e.term])) // remove list **************
@@ -511,13 +517,13 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
 
             var maxNet = 0;
             var maxMonth = -1;
-            for (var m=1; m<numMonth;m++){
+            for (var m=1; m<numMonth;m++){      // loop thru month, start with 2nd month
                 if (terms[att][m]){
                     var previous = 0;
                     if (terms[att][m-1])
                         previous = terms[att][m-1];
-                    var net = (terms[att][m]+1)/(previous+1);
-                    if (net>maxNet){
+                    var net = (terms[att][m]+1)/(previous+1);   // SUDDEN CHANGE!!!
+                    if (net>maxNet){                     // get biggest sudden change throughout lifetime
                         maxNet=net;
                         maxMonth = m;
                     }    
@@ -527,7 +533,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
             e.maxMonth = maxMonth;
             e.category = terms[att].category;   
             
-            if (e.term==searchTerm){
+            if (e.term==searchTerm){        // exist search
                 e.max = 10000;
                 e.isSearchTerm = 1;
             }
@@ -555,36 +561,49 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
 
         //if (searchTerm)
         numberInputTerms = termArray.length;
-       console.log("numberInputTerms="+numberInputTerms) ; 
+       console.log("numberInputTerms="+numberInputTerms) ;
+       console.log("termArray:");
+       console.log(JSON.parse(JSON.stringify(termArray)));
  
     // Compute relationship **********************************************************
-        numNode = Math.min(80, termArray.length);
+        numNode = Math.min(defaultNode, termArray.length);
         numNode2 = Math.min(numNode*3, termArray.length);
         var selectedTerms = {};
         for (var i=0; i<numNode2;i++){
            selectedTerms[termArray[i].term] = termArray[i].max;
         }
+        console.log("selected term");
+        console.log(selectedTerms);         // top 300 cmnr
         
 
         relationship ={};
-        relationshipMaxMax =0;
-        data2.forEach(function(d) { 
+        var relationshipMaxMax =1;
+        data2.forEach(function(d) {         // 16
+            let category;
+            typeArray.forEach((type,i) => {
+                if ((d[type] !== "") && (d[type].length > 1)){
+                    category = type;
+                }
+            });
+
             var year = d.date.getFullYear();
             if (year>=minYear && year<=maxYear){
                 var m = d.m;
                 for (var term1 in d) {
                     if (selectedTerms[term1]){   // if the term is in the selected 100 terms
                         for (var term2 in d) {
-                            if (selectedTerms[term2]){   // if the term is in the selected 100 terms
+                            if ((selectedTerms[term2]) && (term2 !== term1)){   // if the term is in the selected 100
+                                // terms
                                 if (!relationship[term1+"__"+term2]){
                                     relationship[term1+"__"+term2] = new Object();
-                                    relationship[term1+"__"+term2].max = 1;
+                                    relationship[term1+"__"+term2].max = 1;             // max is number occurence  per month
                                     relationship[term1+"__"+term2].maxMonth =m;
+                                    relationship[term1+"__"+term2].category = category;
                                 }    
-                                if (!relationship[term1+"__"+term2][m])
-                                    relationship[term1+"__"+term2][m] = 1;
+                                if (!relationship[term1+"__"+term2][m]){
+                                    relationship[term1+"__"+term2][m] = 1;}
                                 else{
-                                    relationship[term1+"__"+term2][m]++;
+                                    relationship[term1+"__"+term2][m]++;    // add 1 more if occur twice
                                     if (relationship[term1+"__"+term2][m]>relationship[term1+"__"+term2].max){
                                         relationship[term1+"__"+term2].max = relationship[term1+"__"+term2][m];
                                         relationship[term1+"__"+term2].maxMonth =m; 
@@ -599,12 +618,15 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                 }
             }
         });
-        debugger;
 
+        console.log(relationship);
         console.log("DONE computing realtionships relationshipMaxMax="+relationshipMaxMax);
     }
+
+
      
     function computeConnectivity(a, num) {
+        // choose to display, compare to valueSlider
         for (var i=0; i<num;i++){
             a[i].isConnected=-100;
             a[i].isConnectedMaxMonth= a[i].maxMonth;
@@ -614,6 +636,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
             var term1 =  a[i].term;
             for (var j=i+1; j<num;j++){
                 var term2 =  a[j].term;
+                //
                 if (relationship[term1+"__"+term2] && relationship[term1+"__"+term2].max>=valueSlider){
                     if (relationship[term1+"__"+term2].max> a[i].isConnected){
                         a[i].isConnected = relationship[term1+"__"+term2].max;
@@ -640,39 +663,53 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
            
         }
        
-    }    
+    }
+
 
     function computeNodes() {
        
         // check substrings of 100 first terms
-        console.log("termArray.length = "+termArray.length);
-        
-        for (var i=0; i<numNode2;i++){
-          for (var j=0; j<numNode2;j++){
-                if (i==j) continue;
-                if (termArray[j].term.indexOf(termArray[i].term)>-1)
-                    termArray[i].isSubtring = 1;
-            } 
-        }
-        
-        termArray2 = [];
-        for (var i=0; i<numNode2;i++){
-            if (termArray.length<numberInputTerms/3 || !termArray[i].isSubtring)  // only remove substring when there are too many of them
-                termArray2.push(termArray[i])
-        }
-        console.log("termArray2.length = "+termArray2.length);
-        
+        console.log("termArray.length = "+termArray.length);        // 17 - net
+        // excluse substring
 
-        computeConnectivity(termArray2, termArray2.length);
+        // for (var i=0; i<numNode2;i++){
+        //   for (var j=0; j<numNode2;j++){
+        //         if (i==j) continue;
+        //         if (termArray[j].term.indexOf(termArray[i].term)>-1)
+        //             termArray[i].isSubtring = 1;
+        //     }
+        // }
+        //
+        // termArray2 = [];
+        // for (var i=0; i<numNode2;i++){
+        //     if (termArray.length<numberInputTerms/3 || !termArray[i].isSubtring)  // only remove substring when there are too many of them
+        //         termArray2.push(termArray[i])
+        // }
+        // console.log("termArray2.length = "+termArray2.length);
+        // console.log(termArray2);
 
-        
+        termArray2 = JSON.parse(JSON.stringify(termArray.slice(0,numNode2)));
+
         termArray3 = [];
-        for (var i=0; i<termArray2.length;i++){
-            if (termArray2[i].isSearchTerm || termArray2[i].isConnected>0)
-                termArray3.push(termArray2[i]);
+        var firstRound = 100, index = 0, plus = 5, currentRound;
+        while (termArray3.length < termArray2.length) {
+            termArray3 = [];
+            currentRound = firstRound + index*plus;
+            computeConnectivity(termArray2, currentRound);
+
+            for (var i = 0; i < currentRound; i++) {
+                if (termArray2[i].isSearchTerm || termArray2[i].isConnected > 0)
+                    termArray3.push(termArray2[i]);
+            }
+            console.log("termArray3.length = " + termArray3.length);
+
+            if (termArray3.length >= defaultNode) {
+                break;
+            }
+            else {
+                index += 1;
+            }
         }
-        console.log("termArray3.length = "+termArray3.length);
-        
 
         termArray3.sort(function (a, b) {
          if (a.isConnected < b.isConnected) {
@@ -692,10 +729,13 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
             }
         });    
 
+        console.log("termArray3");
+        console.log(termArray3);
 
         computeConnectivity(termArray3, termArray3.length);
 
         nodes = [];
+        var preNodes = [];
         for (var i=0; i<termArray3.length;i++){
             var nod = new Object();
             nod.id = i;
@@ -707,7 +747,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
             nod.maxMonth = termArray3[i].isConnectedMaxMonth;
             nod.month = termArray3[i].isConnectedMaxMonth;
             nod.x=xStep+xScale(nod.month);   // 2016 initialize x position
-            nod.y=height/2;
+            nod.y=height;
             if (nodeY_byName[nod.name]!=undefined)
                 nod.y = nodeY_byName[nod.name];
             
@@ -721,16 +761,15 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
             
             if (!maxCount[nod.group] || nod.max>maxCount[nod.group])
                 maxCount[nod.group] = nod.max;
-            
-            if (termArray3[i].isConnected>0)  // Only allow connected items
+
+            if (termArray3[i].isConnected>0) {  // Only allow connected items
                 nodes.push(nod);
-            if (i>numNode)
-                break;
+            }
+
         }
+
         numNode = nodes.length;
-        
-        console.log("numNode="+numNode);
-        
+        console.log("numNode="+numNode);    // chot numnode
 
         // compute the monthly data      
         termMaxMax2 = 0;
@@ -768,14 +807,15 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                     nodes[i].monthly.push(mon);
                }
             }
-        } 
-
+        }
 
         // Construct an array of only parent nodes
         pNodes = new Array(numNode); //nodes;
         for (var i=0; i<numNode;i++){
             pNodes[i] = nodes[i];
         }
+
+        console.log(pNodes);
         
      //   drawStreamTerm(svg, pNodes, 100, 600) ;
 
@@ -787,23 +827,23 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
               .style("stroke", function(d) { return d.isSearchTerm ? "#000" : "#000"; })
               .style("stroke-width",0.05)
               .style("stroke-opacity",0.5)
-              .style("fill-opacity",1)
-              .style("fill", function(d, i) { 
-                return getColor(d.group, d.max); 
+              .style("fill-opacity",0.5)
+              .style("fill", function(d, i) {
+                return getColor(d.group, d.max);
             });
-        
-          
+
     }    
 
     function computeLinks() {
         links = [];
         relationshipMaxMax2 =1;
         
-       for (var i=0; i<numNode;i++){
+       for (var i=0; i<numNode;i++){        // numNode = 100
             var term1 =  nodes[i].name;
             for (var j=i+1; j<numNode;j++){
                 var term2 =  nodes[j].name;
                 if (relationship[term1+"__"+term2] && relationship[term1+"__"+term2].max>=valueSlider){
+                    var type = relationship[term1+"__"+term2].category;
                     for (var m=1; m<numMonth;m++){
                         if (relationship[term1+"__"+term2][m] && relationship[term1+"__"+term2][m]>=valueSlider){
                             var sourceNodeId = i;
@@ -864,11 +904,13 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
                             var l = new Object();
                             l.source = sourceNodeId;
                             l.target = targetNodeId;
-                            l.m = m; 
+                            l.m = m;
+                            l.type = type;
                             //l.value = linkScale(relationship[term1+"__"+term2][m]); 
-                            links.push(l);
+
                             if (relationship[term1+"__"+term2][m] > relationshipMaxMax2)
                                 relationshipMaxMax2 = relationship[term1+"__"+term2][m];
+                            links.push(l);
                         }
                     }
                 }
@@ -882,7 +924,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
             .range([0, hhh*1.25])
             .domain([0, termMaxMax2]);
         linkScale = d3.scale.linear()
-            .range([0.5, 2])
+            .range([1.2, 4])
             .domain([Math.round(valueSlider)-0.4, Math.max(relationshipMaxMax2,10)]);  
 
         links.forEach(function(l) { 
@@ -894,15 +936,31 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
 
         console.log("DONE links relationshipMaxMax2="+relationshipMaxMax2);
 
-        //Create all the line svgs but without locations yet
+        //Create all the line svgs but without Interstates yet
         svg.selectAll(".linkArc").remove();
         linkArcs = svg.append("g").selectAll("path")
         .data(links)
         .enter().append("path")
         .attr("class", "linkArc")
         .style("stroke-width", function (d) {
-            return d.value;
-        });   
+            return d.value ;
+        })
+            .style("stroke", (d,i) => {
+                if (d.type === "Extrasystemic") {
+                    return color(0);
+                }
+                else if (d.type === "Interstate") {
+                    return color(1)
+                }
+                else if (d.type === "Internal") {
+                    return color(2)
+                }
+                else if (d.type === "Internationalized internal") {
+                    return color(3)
+                }
+            })
+
+        ;
 
         svg.selectAll(".nodeG").remove();
         nodeG = svg.selectAll(".nodeG")
@@ -923,7 +981,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
           
         svg.selectAll(".nodeText").remove();
         nodeG.append("text")
-            .attr("class", ".nodeText")           
+            .attr("class", ".nodeText")
             .attr("dy", ".35em")
             .style("fill", "#000000")   
             .style("text-anchor","end")
@@ -931,7 +989,7 @@ d3.tsv("data/huffington.tsv", function(error, data_) {
             .style("font-weight", function(d) { return d.isSearchTerm ? "bold" : ""; })
             .attr("dy", ".21em")
             .attr("font-family", "sans-serif")
-            .attr("font-size", function(d) { return d.isSearchTerm ? "12px" : "11px"; })
+            .attr("font-size", function(d) { return d.isSearchTerm ? "26px" : "25px"; })
             .text(function(d) { return d.name });  
         nodeG.on('mouseover', mouseovered)
                .on("mouseout", mouseouted); 
@@ -1049,7 +1107,7 @@ function mouseovered(d) {
         svg.selectAll(".layer")
             .style("fill-opacity" , function(n) {  
                 if (list[n.name])
-                    return 1;
+                    return 0.7;
                 else
                   return 0.1;  
             })
@@ -1065,7 +1123,7 @@ function mouseouted(d) {
     if (force.alpha()==0) {
         nodeG.style("fill-opacity" , 1);
         svg.selectAll(".layer")
-            .style("fill-opacity" ,1)
+            .style("fill-opacity" ,0.5)
             .style("stroke-opacity" , 0.5);
         svg.selectAll(".linkArc")
             .style("stroke-opacity" , 1);    
@@ -1188,9 +1246,9 @@ function searchNode() {
 
 
         nodeG.transition().duration(durationTime).attr("transform", function(d) {
-           d.xConnected=xStep+xScale(d.isConnectedMaxMonth);
+           d.xConnected=xStep+xScale(d.monthly[0].monthId);
            return "translate(" + d.xConnected + "," + d.y + ")"
-        })
+        });
          
         /*
         nodeG.style("fill" , function(d) {  
@@ -1251,9 +1309,10 @@ function searchNode() {
             return -1;
           }
           return 0;
-        });  
+        });
 
-        var step = Math.min((height-25)/(numNode+1),15);
+        // var step = Math.min((height-25)/(numNode+1),15);
+        var step = 22;
         //var totalH = termArray.length*step;
         for (var i=0; i< termArray.length; i++) {
             nodes[termArray[i].nodeId].y = 12+i*step;

@@ -3,99 +3,103 @@ var diameter = 1000,
     innerRadius = radius - 120;
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   // Add color legend
+var color = d3.scale.category10();
 function drawColorLegend() {
-      var xx = 6;
-      var y1 = 20;
-      var y2 = 34;
-      var y3 = 48;
-      var y4 = 62;
-      var rr = 6;
+      var xx = 15;
+      var y1 = 50;
+      var y2 = 100;
+      var y3 = 150;
+      var y4 = 200;
+      var rr = 13;
 
-      
+
+
       svg.append("circle")
         .attr("class", "nodeLegend")
-        .attr("cx", xx)
+        .attr("cx", xx+10)
         .attr("cy", y1)
         .attr("r", rr)
-        .style("fill", "#00aa00");
-      
+        .style("fill", color(0));
+
       svg.append("text")
         .attr("class", "nodeLegend")
-        .attr("x", xx+10)
-        .attr("y", y1+1)
-        .text("Person")
+        .attr("x", xx+30)
+        .attr("y", y1+2)
+        .text("Extrasystemic")
         .attr("dy", ".21em")
         .attr("font-family", "sans-serif")
-        .attr("font-size", "11px")
+        .attr("font-size", fontsize)
         .style("text-anchor", "left")
-        .style("fill", "#00aa00");
-   
+        .style("fill", color(0));
+
       svg.append("circle")
         .attr("class", "nodeLegend")
-        .attr("cx", xx)
+        .attr("cx", xx+10)
         .attr("cy", y2)
         .attr("r", rr)
-        .style("fill", "#cc0000");  
+        .style("fill", color(1));
 
       svg.append("text")
         .attr("class", "nodeLegend")
-        .attr("x", xx+10)
-        .attr("y", y2+1)
-        .text("Location")
+        .attr("x", xx+30)
+        .attr("y", y2+2)
+        .text("Interstate")
         .attr("dy", ".21em")
         .attr("font-family", "sans-serif")
-        .attr("font-size", "11px")
+        .attr("font-size", fontsize)
         .style("text-anchor", "left")
-        .style("fill", "#cc0000");  
+        .style("fill", color(1));
 
        svg.append("circle")
         .attr("class", "nodeLegend")
-        .attr("cx", xx)
+        .attr("cx", xx+10)
         .attr("cy", y3)
         .attr("r", rr)
-        .style("fill", "#0000cc");  
+        .style("fill", color(2));
 
       svg.append("text")
         .attr("class", "nodeLegend")
-        .attr("x", xx+10)
-        .attr("y", y3+1)
-        .text("Organization")
+        .attr("x", xx+30)
+        .attr("y", y3+2)
+        .text("Internal")
         .attr("dy", ".21em")
         .attr("font-family", "sans-serif")
-        .attr("font-size", "11px")
+        .attr("font-size", fontsize)
         .style("text-anchor", "left")
-        .style("fill", "#0000cc");  
-        
+        .style("fill", color(2));
+
        svg.append("circle")
         .attr("class", "nodeLegend")
-        .attr("cx", xx)
+        .attr("cx", xx+10)
         .attr("cy", y4)
         .attr("r", rr)
-        .style("fill", "#aaaa00");  
+        .style("fill",color(3));
 
       svg.append("text")
         .attr("class", "nodeLegend")
-        .attr("x", xx+10)
-        .attr("y", y4+1)
-        .text("Miscellaneous")
+        .attr("x", xx+30)
+        .attr("y", y4+2)
+        .text("Internationalized internal")
         .attr("dy", ".21em")
         .attr("font-family", "sans-serif")
-        .attr("font-size", "11px")
+        .attr("font-size", fontsize)
         .style("text-anchor", "left")
-        .style("fill", "#aaaa00");     
+        .style("fill", color(3));
 
-      // number of input terms  
+      // number of input terms
       svg.append("text")
         .attr("class", "nodeLegend")
         .attr("x", xx-6)
-        .attr("y", y4+20)
+        .attr("y", ySlider + 60)
         .text(numberInputTerms+" terms of "+ data.length +" blogs" )
         .attr("dy", ".21em")
         .attr("font-family", "sans-serif")
-        .attr("font-size", "11px")
+        .attr("font-size", fontsize)
         .style("text-anchor", "left")
-        .style("fill", "#000000");       
+        .style("fill", "#000000");
+
 }
+
 
 function removeColorLegend() {
  svg.selectAll(".nodeLegend").remove();
@@ -110,13 +114,15 @@ function drawTimeLegend() {
       obj.x = xx;
       obj.year = i;
       listX.push(obj);
-    }  
+    }
   }
 
+  console.log("listX")
+  console.log(listX);
   svg.selectAll(".timeLegendLine").data(listX)
     .enter().append("line")
       .attr("class", "timeLegendLine")
-      .style("stroke", "000") 
+      .style("stroke", "000")
       .style("stroke-dasharray", "1, 2")
       .style("stroke-opacity", 1)
       .style("stroke-width", 0.2)
@@ -124,28 +130,31 @@ function drawTimeLegend() {
       .attr("x2", function(d){ return d.x; })
       .attr("y1", function(d){ return 0; })
       .attr("y2", function(d){ return height; });
+
   svg.selectAll(".timeLegendText").data(listX)
     .enter().append("text")
       .attr("class", "timeLegendText")
-      .style("fill", "#000000")   
+      .style("fill", "#000000")
+      // .style("fill-opacity", (d,i) => )
       .style("text-anchor","start")
       .style("text-shadow", "1px 1px 0 rgba(255, 255, 255, 0.6")
       .attr("x", function(d){ return d.x; })
-      .attr("y", function(d,i) { 
+      .attr("y", function(d,i) {
         if (i%12==0)
-          return height-7;
+          return height-5;
         else
-          return height-15;   
+          return height-13;
       })
       .attr("dy", ".21em")
       .attr("font-family", "sans-serif")
-      .attr("font-size", "12px")
-      .text(function(d,i) { 
+      .attr("font-size", fontsize)
+      .attr("font-weight", "bold")
+      .text(function(d,i) {
         if (i%12==0)
           return d.year;
         else
-          return months[i%12];  
-      });     
+          return months[i%12];
+      });
 }
 
 function updateTimeLegend() {
@@ -158,14 +167,14 @@ function updateTimeLegend() {
       obj.x = xx;
       obj.year = i;
       listX.push(obj);
-    }  
+    }
   }
 
   svg.selectAll(".timeLegendLine").data(listX).transition().duration(250)
-      .style("stroke-dasharray",  function(d,i){ 
+      .style("stroke-dasharray",  function(d,i){
         if (!isLensing)
           return "1, 2";
-        else  
+        else
           return i%12==0 ? "2, 1" : "1, 3"})
       .style("stroke-opacity", function(d,i){
         if (i%12==0)
@@ -173,28 +182,28 @@ function updateTimeLegend() {
         else {
           if (isLensing && lMonth-lensingMul<=i && i<=lMonth+lensingMul)
               return 1;
-          else 
-            return 0; 
+          else
+            return 0;
         }
-      }) 
+      })
       .attr("x1", function(d){return d.x; })
       .attr("x2", function(d){ return d.x; });
   svg.selectAll(".timeLegendText").data(listX).transition().duration(250)
       .style("fill-opacity", function(d,i){
-        if (i%12==0)
+        if ((i%12==0) && (d["year"]%5 === 0))
           return 1;
         else {
           if (isLensing && lMonth-lensingMul<=i && i<=lMonth+lensingMul)
               return 1;
-          else 
-            return 0; 
+          else
+            return 0;
         }
-      }) 
-      .attr("x", function(d,i){ 
-        return d.x; });  
+      })
+      .attr("x", function(d,i){
+        return d.x; });
 }
 
-function drawTimeBox(){  
+function drawTimeBox(){
   svg.append("rect")
     .attr("class", "timeBox")
     .style("fill", "#aaa")
@@ -202,7 +211,7 @@ function drawTimeBox(){
     .attr("x", xStep)
     .attr("y", height-25)
     .attr("width", XGAP_*numMonth)
-    .attr("height", 16)
+    .attr("height", 30)
     .on("mouseout", function(){
       isLensing = false;
       coordinate = d3.mouse(this);
@@ -215,10 +224,10 @@ function drawTimeBox(){
       lMonth = Math.floor((coordinate[0]-xStep)/XGAP_);
       updateTransition(250);
     });
-}  
+}
 
-function updateTimeBox(durationTime){  
-  var maxY=0; 
+function updateTimeBox(durationTime){
+  var maxY=0;
   for (var i=0; i< nodes.length; i++) {
     if (nodes[i].y>maxY)
       maxY = nodes[i].y;
@@ -227,36 +236,36 @@ function updateTimeBox(durationTime){
       .attr("y", maxY+12);
   svg.selectAll(".timeLegendText").transition().duration(durationTime)
     .style("fill-opacity", function(d,i){
-        if (i%12==0)
+        if ((i%12==0)&& (d["year"]%5 === 0))
           return 1;
         else {
           if (isLensing && lMonth-lensingMul<=i && i<=lMonth+lensingMul)
               return 1;
-          else 
-            return 0; 
+          else
+            return 0;
         }
-      }) 
-    .attr("y", function(d,i) { 
+      })
+    .attr("y", function(d,i) {
       if (i%12==0)
-        return maxY+21;
+        return maxY+32;
       else
-        return maxY+21;   
+        return maxY+32;
     })
-    .attr("x", function(d,i){ 
-      return d.x; });   
+    .attr("x", function(d,i){
+      return d.x; });
 }
 
-var buttonLensingWidth =80;
-var buttonheight =15;
+var buttonLensingWidth =150;
+var buttonheight =40;
 var roundConner = 4;
 var colorHighlight = "#fc8";
 var buttonColor = "#ddd";
 
-function drawLensingButton(){  
+function drawLensingButton(){
   svg.append('rect')
     .attr("class", "lensingRect")
-    .attr("x", 1)
-    .attr("y", 170)
+    .attr("x",15)
+    .attr("y", ySlider + 110)
     .attr("rx", roundConner)
     .attr("ry", roundConner)
     .attr("width", buttonLensingWidth)
@@ -272,13 +281,13 @@ function drawLensingButton(){
       svg.selectAll(".lensingRect")
           .style("fill", buttonColor);
     })
-    .on('click', turnLensing);         
+    .on('click', turnLensing);
   svg.append('text')
     .attr("class", "lensingText")
     .attr("font-family", "sans-serif")
-    .attr("font-size", "11px")
-    .attr("x", buttonLensingWidth/2)
-    .attr("y", 181)
+    .attr("font-size", fontsize)
+    .attr("x", 15+ buttonLensingWidth/2)
+    .attr("y", ySlider + 138)
     .text("Lensing")
     .style("text-anchor", "middle")
     .style("fill", "#000")
@@ -299,7 +308,7 @@ function turnLensing() {
       return isLensing ? 1 : 0.1;
     });
   svg.selectAll('.lensingText')
-    .style("font-weight", function() { 
+    .style("font-weight", function() {
       return isLensing ? "bold" : "";
     });
    svg.append('rect')
@@ -312,30 +321,31 @@ function turnLensing() {
     .on('mousemove', function(){
       coordinate = d3.mouse(this);
       lMonth = Math.floor((coordinate[0]-xStep)/XGAP_);
-      updateTransition(250);  
+      updateTransition(250);
       updateTimeLegend();
     });
-    updateTransition(250);     
-    updateTimeLegend(); 
-}  
+    updateTransition(250);
+    updateTimeLegend();
+}
+
 
 function getColor(category, count) {
   var minSat = 80;
   var maxSat = 180;
   var percent = count/maxCount[category];
   var sat = minSat+Math.round(percent*(maxSat-minSat));
- 
-  if (category=="person")
-    return "rgb("+sat+", "+255+", "+sat+")" ; // leaf node
-  else if (category=="location")
-    return "rgb("+255+", "+sat+", "+sat+")" ; // leaf node
-  else if (category=="organization")
-    return "rgb("+sat+", "+sat+", "+255+")" ; // leaf node
-  else if (category=="miscellaneous")
-    return "rgb("+(215)+", "+(215)+", "+(sat)+")" ; // leaf node
+
+  if (category=="Extrasystemic")
+    return color(0) ; // leaf node
+  else if (category=="Interstate")
+    return color(1) ; // leaf node
+  else if (category=="Internal")
+    return color(2) ; // leaf node
+  else if (category=="Internationalized internal")
+    return color(3) ; // leaf node
   else
     return "#000000";
-   
+
 }
 
 function colorFaded(d) {
@@ -343,7 +353,7 @@ function colorFaded(d) {
   var maxSat = 230;
   var step = (maxSat-minSat)/maxDepth;
   var sat = Math.round(maxSat-d.depth*step);
- 
+
   //console.log("maxDepth = "+maxDepth+"  sat="+sat+" d.depth = "+d.depth+" step="+step);
   return d._children ? "rgb("+sat+", "+sat+", "+sat+")"  // collapsed package
     : d.children ? "rgb("+sat+", "+sat+", "+sat+")" // expanded package
@@ -354,10 +364,10 @@ function colorFaded(d) {
 function getBranchingAngle1(radius3, numChild) {
   if (numChild<=2){
     return Math.pow(radius3,2);
-  }  
+  }
   else
     return Math.pow(radius3,1);
- } 
+ }
 
 function getRadius(d) {
  // console.log("scaleCircle = "+scaleCircle +" scaleRadius="+scaleRadius);
@@ -411,7 +421,7 @@ function tick(event) {
   link_selection.attr("x1", function(d) { return d.source.x; })
     .attr("y1", function(d) { return d.source.y; })
     .attr("x2", function(d) { return d.target.x; })
-    .attr("y2", function(d) { return d.target.y; }); 
+    .attr("y2", function(d) { return d.target.y; });
   var force_influence = 0.9;
   node_selection
     .each(function(d) {
@@ -419,8 +429,8 @@ function tick(event) {
       d.y += (d.treeY - d.y) * (force_influence); //*event.alpha;
     });
  // circles.attr("cx", function(d) { return d.x; })
-  //    .attr("cy", function(d) { return d.y; });  
-  
+  //    .attr("cy", function(d) { return d.y; });
+
 }*/
 
 
