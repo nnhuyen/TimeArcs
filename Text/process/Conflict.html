@@ -43,6 +43,7 @@
             });
         });
 
+
         // check duplicate
         // temp2.forEach((a,i) => {
         //     temp2.forEach((b,j) => {
@@ -69,6 +70,12 @@
 // source: UCDP
         var data = [];
         inputData.forEach((record, i) => {
+            if (record["side_a"].includes("Government of")){
+                record["side_a"] = record["side_a"].split("Government of ").join("")
+            }
+            if (record["side_b"].includes("Government of")){
+                record["side_b"] = record["side_b"].split("Government of ").join("")
+            }
             var obj = {};
             obj["Extrasystemic"] = "";
             obj["Interstate"] = "";

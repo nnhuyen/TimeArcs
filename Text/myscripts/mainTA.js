@@ -3,8 +3,8 @@ var margin = {top: 0, right: 0, bottom: 5, left: 5};
 // var width = document.body.clientWidth - margin.left - margin.right;
 var width = 5000;
 // var height = 780 - margin.top - margin.bottom;
-var height = 4000;
-var defaultNode = 150;
+var height = 2500;
+var defaultNode = 100;
 var typeArray = ["Extrasystemic", "Interstate", "Internal", "Internationalized internal"];
 //---End Insert------
 
@@ -85,10 +85,11 @@ var links;
 var linkArcs;
 var termArray, termArray2, termArray3;
 var relationship;
+
 var termMaxMax, termMaxMax2;
 var terms;
 var NodeG; 
-var xStep =1200;
+var xStep =550;
 //var xScale = d3.time.scale().range([0, (width-xStep-100)/numMonth]);
 var yScale;
 var linkScale;
@@ -147,7 +148,7 @@ var links2List = {};
 //d3.tsv("data/corpus_ner_geo.tsv", function(error, data_) {
 // d3.tsv("data/huffington.tsv", function(error, data_) {
 //d3.tsv("data/wikinews.tsv", function(error, data_) {
-d3.json("data/conflict/conflict.json", function(error, data_) {
+d3.json("data/conflict/conflictInt.json", function(error, data_) {
       if (error) throw error;
     data = data_;
     console.log("data_");
@@ -574,15 +575,14 @@ d3.json("data/conflict/conflict.json", function(error, data_) {
         }
         console.log("selected term");
         console.log(selectedTerms);         // top 300 cmnr
-        
 
         relationship ={};
         var relationshipMaxMax =1;
         data2.forEach(function(d) {         // 16
-            let category;
+            let specificCategory;
             typeArray.forEach((type,i) => {
                 if ((d[type] !== "") && (d[type].length > 1)){
-                    category = type;
+                    specificCategory = type;
                 }
             });
 
@@ -596,12 +596,14 @@ d3.json("data/conflict/conflict.json", function(error, data_) {
                                 // terms
                                 if (!relationship[term1+"__"+term2]){
                                     relationship[term1+"__"+term2] = new Object();
-                                    relationship[term1+"__"+term2].max = 1;             // max is number occurence  per month
+                                    relationship[term1+"__"+term2].max = 1;             // max: # occurence  per month
                                     relationship[term1+"__"+term2].maxMonth =m;
-                                    relationship[term1+"__"+term2].category = category;
                                 }    
                                 if (!relationship[term1+"__"+term2][m]){
-                                    relationship[term1+"__"+term2][m] = 1;}
+                                    relationship[term1+"__"+term2][m] = 1;
+                                    relationship[term1+"__"+term2]["intensity_" + m] = d.intensity;
+                                    relationship[term1+"__"+term2]["type_" + m] = specificCategory;
+                                    }
                                 else{
                                     relationship[term1+"__"+term2][m]++;    // add 1 more if occur twice
                                     if (relationship[term1+"__"+term2][m]>relationship[term1+"__"+term2].max){
@@ -619,12 +621,12 @@ d3.json("data/conflict/conflict.json", function(error, data_) {
             }
         });
 
+        console.log("relationship");
         console.log(relationship);
         console.log("DONE computing realtionships relationshipMaxMax="+relationshipMaxMax);
+
     }
 
-
-     
     function computeConnectivity(a, num) {
         // choose to display, compare to valueSlider
         for (var i=0; i<num;i++){
@@ -843,9 +845,11 @@ d3.json("data/conflict/conflict.json", function(error, data_) {
             for (var j=i+1; j<numNode;j++){
                 var term2 =  nodes[j].name;
                 if (relationship[term1+"__"+term2] && relationship[term1+"__"+term2].max>=valueSlider){
-                    var type = relationship[term1+"__"+term2].category;
+                    // let cate = category[term1+"__"+term2];
+                    // let type = Object.keys(cate).reduce(function(a, b){ return cate[a] > cate[b] ? a : b });
                     for (var m=1; m<numMonth;m++){
                         if (relationship[term1+"__"+term2][m] && relationship[term1+"__"+term2][m]>=valueSlider){
+                            var type = relationship[term1+"__"+term2]["type_" +m];
                             var sourceNodeId = i;
                             var targetNodeId = j;
                             
@@ -923,15 +927,19 @@ d3.json("data/conflict/conflict.json", function(error, data_) {
         yScale = d3.scale.linear()
             .range([0, hhh*1.25])
             .domain([0, termMaxMax2]);
+        // linkScale = d3.scale.linear()
+        //     .range([1.2, 4])
+        //     .domain([Math.round(valueSlider)-0.4, Math.max(relationshipMaxMax2,10)]);
+
         linkScale = d3.scale.linear()
-            .range([1.2, 4])
-            .domain([Math.round(valueSlider)-0.4, Math.max(relationshipMaxMax2,10)]);  
+            .range([1.2, 3])
+            .domain([1,2]);
 
         links.forEach(function(l) { 
             var term1 = nodes[l.source].name;
             var term2 = nodes[l.target].name;
             var month = l.m;
-            l.value = linkScale(relationship[term1+"__"+term2][month]); 
+            l.value = linkScale(relationship[term1+"__"+term2]["intensity_"+month]);
         }  );  
 
         console.log("DONE links relationshipMaxMax2="+relationshipMaxMax2);
@@ -959,7 +967,6 @@ d3.json("data/conflict/conflict.json", function(error, data_) {
                     return color(3)
                 }
             })
-
         ;
 
         svg.selectAll(".nodeG").remove();
@@ -989,7 +996,7 @@ d3.json("data/conflict/conflict.json", function(error, data_) {
             .style("font-weight", function(d) { return d.isSearchTerm ? "bold" : ""; })
             .attr("dy", ".21em")
             .attr("font-family", "sans-serif")
-            .attr("font-size", function(d) { return d.isSearchTerm ? "26px" : "25px"; })
+            .attr("font-size", function(d) { return d.isSearchTerm ? "21px" : "20px"; })
             .text(function(d) { return d.name });  
         nodeG.on('mouseover', mouseovered)
                .on("mouseout", mouseouted); 
@@ -1312,7 +1319,7 @@ function searchNode() {
         });
 
         // var step = Math.min((height-25)/(numNode+1),15);
-        var step = 22;
+        var step = 17;
         //var totalH = termArray.length*step;
         for (var i=0; i< termArray.length; i++) {
             nodes[termArray[i].nodeId].y = 12+i*step;
