@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Conflicts</title>
+    <script src="../javascripts/d3.v3.min.js"></script>
+</head>
+<body>
+<script>
+    var type = {
+        "1": "Extrasystemic",
+        "2": "Interstate",
+        "3": "Internal",
+        "4": "Internationalized internal"
+    };
+    var typeArray = ["Extrasystemic", "Interstate", "Internal", "Internationalized internal"];
+
+    d3.csv("../data/conflict/conflict.csv", function (error, inputData) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            console.log(inputData);
+            console.log(loadGeneralData(inputData));
+        }
+    });
+    function loadGeneralData(inputData){
+        var attrOmit = [
+            // "dyad_id",   ID
+            "conflict_id", "location",
+            // "side_a",    name
+            "side_a_id", "side_a_2nd",
+            // "side_b",    name
+            "side_b_id", "side_b_2nd", "incompatibility", "territory",
+            // "year",      time
+            // "intensity", intensit
+            // "type",      type
+            "start_date", "start_prec", "start_date2", "start_prec2", "gwno_a", "gwno_a_2nd", "gwno_b", "gwno_b_2nd", "gwno_loc", "region", "version"];
+
+        inputData.forEach(d => {
+            attrOmit.forEach(attr => {  // keep only wanted attributes
+                delete d[attr];
+            });
+        });
+
+
+        // check duplicate
+        // temp2.forEach((a,i) => {
+        //     temp2.forEach((b,j) => {
+        //         if ( (i !== j) &&
+        //             (a["location"] === b["location"]) &&
+        //             (a["side_a_id"] === b["side_a_id"]) &&
+        //             (a["side_a_2nd"] === b["side_a_2nd"]) &&
+        //             (a["side_b_id"] === b["side_b_id"]) &&
+        //             (a["incompatibility"] === b["incompatibility"]) &&
+        //             (a["side_b_2nd"] === b["side_b_2nd"]) &&
+        //             (a["territory"] === b["territory"]) &&
+        //             (a["intensity"] === b["intensity"]) &&
+        //             (a["start_date"] === b["start_date"]) &&
+        //             (a["start_prec"] === b["start_prec"]) &&
+        //             (a["region"] === b["region"]) &&
+        //             (a["year"] === b["year"]) &&
+        //             (a["start_date2"] === b["start_date2"]) &&
+        //             (a["start_prec2"] === b["start_prec2"]) &&
+        //             (a["gwno_a"] === b["gwno_a"])
+        //         ){console.log(i);}
+        //     })
+        // })
+
+// source: UCDP
+        var data = [];
+        inputData.forEach((record, i) => {
+            if (record["side_a"].includes("Government of")){
+                record["side_a"] = record["side_a"].split("Government of ").join("")
+            }
+            if (record["side_b"].includes("Government of")){
+                record["side_b"] = record["side_b"].split("Government of ").join("")
+            }
+            var obj = {};
+            obj["Extrasystemic"] = "";
+            obj["Interstate"] = "";
+            obj["Internal"] = "";
+            obj["Internationalized internal"] = "";
+
+            typeArray.forEach((type, j) => {
+                obj[type] = "";
+                if (parseInt(record["type"]) === j+1) {
+                    obj[type] = record["side_a"] +"|"+ record["side_b"];
+                }
+            });
+
+            data.push({
+                "Extrasystemic": obj["Extrasystemic"],
+                "Interstate": obj["Interstate"],
+                "Internal": obj["Internal"],
+                "Internationalized internal": obj["Internationalized internal"],
+                "source": "UCDP",
+                "time": record.year,
+                "intensity": record.intensity
+            })
+        });
+
+return data;
+
+    }
+</script>
+</body>
+</html>
